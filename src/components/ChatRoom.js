@@ -1,101 +1,129 @@
-// import React, { useState, useEffect } from "react";
-// import firebase from "firebase";
-// import "./ChatRoom.css";
-// import { Avatar } from "@material-ui/core";
-// import SearchIcon from "@material-ui/icons/Search";
-// import SendIcon from "@material-ui/icons/Send";
-// import AttachFileIcon from "@material-ui/icons/AttachFile";
-// import MoreVertIcon from "@material-ui/icons/MoreVert";
-// import SentimentVerySatisfiedIcon from "@material-ui/icons/SentimentVerySatisfied";
-// import MicIcon from "@material-ui/icons/Mic";
-// import { useParams } from "react-router-dom";
-// import { database } from "../firebase";
-// import { LoginContext } from "../LoginContext";
-// function ChatRoom() {
-//   const [input, setinput] = useState("");
-//   const { roomid } = useParams();
-//   const [roomname, setroomname] = useState("");
-//   const [message, setmessages] = useState([]);
-//   const [{ user }, dispatch] = useStateValue();
+import React, { useState, useEffect, useContext } from "react";
+import "./ChatRoom.css";
+import { Avatar } from "@material-ui/core";
+import SearchIcon from "@material-ui/icons/Search";
+import SendIcon from "@material-ui/icons/Send";
+import AttachFileIcon from "@material-ui/icons/AttachFile";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import SentimentVerySatisfiedIcon from "@material-ui/icons/SentimentVerySatisfied";
+import MicIcon from "@material-ui/icons/Mic";
+import { v4 as uuidv4 } from "uuid";
+import { database } from "../firebase";
+import firebase from "firebase";
+import { LoginContext } from "../LoginContext";
 
-//   useEffect(() => {
-//     if (roomid) {
-//       database
-//         .collection("rooms")
-//         .doc(roomid)
-//         .onSnapshot((snapshot) => setroomname(snapshot.data().name));
-//       database
-//         .collection("rooms")
-//         .doc(roomid)
-//         .collection("messages")
-//         .orderBy("timestamp", "asc")
-//         .onSnapshot((snapshot) =>
-//           setmessages(snapshot.docs.map((doc) => doc.data()))
-//         );
-//     }
-//   }, [roomid]);
+function ChatRoom(props) {
+  const [currMessage, setCurrMessage] = useState("");
+  const recipentID = props.match.params.userID;
+  const [messages, setMessages] = useState([]);
+  const [user, setUser] = useContext(LoginContext);
+  const [recipentName, setRecipentName] = useState("");
 
-//   const SendMessage = (event) => {
-//     event.preventDefault();
+  useEffect(() => {
+    if (recipentID) {
+      database
+        .ref(`/chats/${user.user.uid}/${recipentID}`)
+        .orderByChild("createdAt")
+        .on("value", function (snapshot) {
+          let msg = [];
+          snapshot.forEach((childSnapshot) => {
+            msg.push(childSnapshot.val());
+          });
+          setMessages(msg);
+        });
+      database.ref(`/users/${recipentID}`).on("value", function (snapshot) {
+        setRecipentName(snapshot.val().name);
+      });
+    }
+  }, [recipentID]);
 
-//     database.collection("rooms").doc(roomid).collection("messages").add({
-//       message: input,
-//       name: user.displayName,
-//       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-//     });
-//     setinput("");
-//   };
+  const SendMessage = () => {
+    const messageID = uuidv4();
 
-//   return (
-//     <div className="chatroom">
-//       <div className="chatroom__header">
-//         <Avatar />
-//         <div className="chatroom__headerinfoleft">
-//           <h3>{roomname}</h3>
-//           <p>
-//             last seen{" "}
-//             {new Date(
-//               message[message.length - 1]?.timestamp?.toDate()
-//             ).toUTCString()}
-//           </p>
-//         </div>
-//         <div className="chatroom__header__inforight">
-//           <SearchIcon />
-//           <AttachFileIcon />
-//           <MoreVertIcon />
-//         </div>
-//       </div>
-//       <div className="chatroom__body">
-//         {message.map((message) => (
-//           <p
-//             className={`chatroom__message ${
-//               message.name === user.displayName && `chatroom__messagerecierver`
-//             }`}
-//           >
-//             <span className="chatroom__username">{message.name}</span>
-//             {message.message}
-//             <span className="chatroom__messagetimestamp ">
-//               {new Date(message.timestamp?.toDate()).toUTCString()}
-//             </span>
-//           </p>
-//         ))}
-//       </div>
-//       <div className="chatroom__footer">
-//         <SentimentVerySatisfiedIcon />
-//         <form>
-//           <input
-//             value={input}
-//             onChange={(event) => setinput(event.target.value)}
-//             placeholder="Type your message here"
-//           />
-//           <button onClick={SendMessage} type="submit">
-//             <SendIcon />
-//           </button>
-//         </form>
-//         <MicIcon />
-//       </div>
-//     </div>
-//   );
-// }
+    if (currMessage) {
+      const { uid, displayName } = user.user;
+      database
+        .ref(`/chats/${uid}/${recipentID}/${messageID}`)
+        .set({
+          text: currMessage,
+          senderID: uid,
+          senderName: displayName,
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+        })
+        .catch(alert);
+      database
+        .ref(`/chats/${recipentID}/${uid}/${messageID}`)
+        .set({
+          text: currMessage,
+          messageInfo: 0,
+          senderID: uid,
+          senderName: displayName,
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+        })
+        .catch(alert);
 
-// export default ChatRoom;
+      setCurrMessage("");
+    } else {
+      alert("Enter a message");
+      return;
+    }
+  };
+
+  const CheckMessageInfo = (msgState) => {
+    switch (msgState) {
+      case 0:
+        return "https://img.icons8.com/material-outlined/24/000000/checkmark--v1.png";
+      case 1:
+        return "https://img.icons8.com/fluency-systems-regular/48/000000/double-tick.png";
+      case 2:
+        return "https://img.icons8.com/color-glass/48/000000/double-tick.png";
+    }
+  };
+
+  return (
+    <div className="chatroom">
+      <div className="chatroom__header">
+        <Avatar />
+        <div className="chatroom__headerinfoleft">
+          <h3>{recipentName}</h3>
+        </div>
+        <div className="chatroom__header__inforight">
+          <SearchIcon />
+          <AttachFileIcon />
+          <MoreVertIcon />
+        </div>
+      </div>
+      <div className="chatroom__body">
+        {messages.map((message) => (
+          <p
+            className={`chatroom__message ${
+              message.senderName === user.user.displayName &&
+              `chatroom__messagerecierver`
+            }`}
+          >
+            <span className="chatroom__username">{message.senderName}</span>
+            {message.text}
+            <img
+              className="message-state"
+              src={CheckMessageInfo(message.messageInfo)}
+            />
+          </p>
+        ))}
+      </div>
+      <div className="chatroom__footer">
+        <SentimentVerySatisfiedIcon />
+        <input
+          value={currMessage}
+          onChange={(event) => setCurrMessage(event.target.value)}
+          placeholder="Type your message here"
+        />
+        <button onClick={SendMessage} type="submit">
+          <SendIcon />
+        </button>
+        <MicIcon />
+      </div>
+    </div>
+  );
+}
+
+export default ChatRoom;

@@ -15,17 +15,13 @@ function App() {
         <Login />
       ) : (
         <div className="app__container">
-          {/* <Router> */}
-          <Sidebar />
-          {/* <Switch>
-              <Route path="/rooms/:roomid">
-                <ChatRoom />
-              </Route>
-              <Route path="/">
-                <ChatRoom />
-              </Route>
-            </Switch> */}
-          {/* </Router> */}
+          <Router>
+            <Sidebar />
+            <Switch>
+              <Route path="/users/:userID" component={ChatRoom} />
+              <Route path="/" component={ChatRoom} />
+            </Switch>
+          </Router>
         </div>
       )}
     </div>

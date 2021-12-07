@@ -106,3 +106,7 @@
   padding: 10px;
   color: gray;
 }
+
+.message-state {
+  width: 24px;
+}

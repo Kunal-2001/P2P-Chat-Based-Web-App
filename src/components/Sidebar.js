@@ -24,7 +24,6 @@ function Sidebar() {
           });
         }
       });
-      console.log(contacts);
       setAllContacts(contacts);
     });
 

@@ -11,27 +11,16 @@ function Chats({ id, name, status }) {
     setavatars(Math.floor(Math.random() * 5000));
   }, []);
 
-  // useEffect(() => {
-  //   if (id) {
-  //     database
-  //       .collection("rooms")
-  //       .doc(id)
-  //       .collection("messages")
-  //       .orderBy("timestamp", "desc")
-  //       .onSnapshot((snapshot) =>
-  //         setmessages(snapshot.docs.map((doc) => doc.data()))
-  //       );
-  //   }
-  // }, [id]);
-
   return (
-    <div className="chats">
-      <Avatar src={`https://avatars.dicebear.com/api/human/${avatars}.svg`} />
-      <div className="chats__info">
-        <h3>{name}</h3>
-        <div className={status ? "online" : "offline"}></div>
+    <Link to={`/users/${id}`}>
+      <div className="chats">
+        <Avatar src={`https://avatars.dicebear.com/api/human/${avatars}.svg`} />
+        <div className="chats__info">
+          <h3>{name}</h3>
+          <div className={status ? "online" : "offline"}></div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
