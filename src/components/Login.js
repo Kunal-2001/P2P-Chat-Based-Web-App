@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import "./Login.css";
 import { Button } from "@material-ui/core";
-import { authentication, provider } from "../firebase";
+import { authentication, provider, database } from "../firebase";
 import { LoginContext } from "../LoginContext";
 
 function Login() {
@@ -11,7 +11,11 @@ function Login() {
     authentication
       .signInWithPopup(provider)
       .then((result) => {
-        console.log(user, result);
+        const userID = result.user.uid;
+        database
+          .ref(`users/${userID}`)
+          .set({ name: result.user.displayName, onlineStatus: true })
+          .catch(alert);
         setUser(result);
       })
       .catch((error) => alert(error.message));

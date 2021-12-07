@@ -15,10 +15,26 @@
 }
 
 .chats__info {
+  display: flex;
   margin-left: 10px;
+  justify-content: space-between;
 }
 
 a {
   text-decoration: none !important;
   color: black;
+}
+
+.online {
+  width: 17px;
+  height: 17px;
+  background-color: green;
+  border-radius: 50%;
+}
+
+.offline {
+  width: 17px;
+  height: 17px;
+  background-color: red;
+  border-radius: 50%;
 }
