@@ -21,8 +21,10 @@ function ChatRoom(props) {
 
   useEffect(() => {
     if (recipentID) {
+      const UID = user.user.uid;
+
       database
-        .ref(`/chats/${user.user.uid}/${recipentID}`)
+        .ref(`/chats/${recipentID}/${UID}`)
         .orderByChild("createdAt")
         .on("value", function (snapshot) {
           let msg = [];
@@ -31,6 +33,19 @@ function ChatRoom(props) {
           });
           setMessages(msg);
         });
+
+      database
+        .ref(`/chats/${UID}/${recipentID}`)
+        .on("value", function (snapshot) {
+          snapshot.forEach((child) => {
+            if (child.val().messageInfo != 2) {
+              database
+                .ref(`chats/${UID}/${recipentID}/${child.key}`)
+                .update({ messageInfo: 2 });
+            }
+          });
+        });
+
       database.ref(`/users/${recipentID}`).on("value", function (snapshot) {
         setRecipentName(snapshot.val().name);
       });
@@ -97,8 +112,7 @@ function ChatRoom(props) {
         {messages.map((message) => (
           <p
             className={`chatroom__message ${
-              message.senderName === user.user.displayName &&
-              `chatroom__messagerecierver`
+              message.senderID === user.user.uid && `chatroom__messagerecierver`
             }`}
           >
             <span className="chatroom__username">{message.senderName}</span>

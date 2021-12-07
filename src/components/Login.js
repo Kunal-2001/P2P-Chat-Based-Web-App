@@ -7,11 +7,39 @@ import { LoginContext } from "../LoginContext";
 function Login() {
   const [user, setUser] = useContext(LoginContext);
 
+  const changeMsgStatusToDeliver = (userID) => {
+    database.ref(".info/connected").on("value", (snapshot) => {
+      if (snapshot.val()) {
+        database.ref(`chats/${userID}`).on("value", (sender) => {
+          sender.forEach((s) => {
+            database.ref(`chats/${userID}/${s.key}`).on("value", (messages) => {
+              messages.forEach((msg) => {
+                if (msg.val().messageInfo == 0) {
+                  const data = msg.val();
+                  database.ref(`chats/${userID}/${s.key}/${msg.key}`).set({
+                    createdAt: data.createdAt,
+                    senderName: data.senderName,
+                    senderID: data.senderID,
+                    text: data.text,
+                    messageInfo: 1,
+                  });
+                }
+              });
+            });
+          });
+        });
+      }
+    });
+  };
+
   const signIn = () => {
     authentication
       .signInWithPopup(provider)
       .then((result) => {
         const userID = result.user.uid;
+
+        changeMsgStatusToDeliver(userID);
+
         database
           .ref(`users/${userID}`)
           .set({ name: result.user.displayName, onlineStatus: true })

@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import { LoginProvider } from "./LoginContext";
-// import reducer, { initialState } from "./reducer";
+
 ReactDOM.render(
   <React.StrictMode>
     <LoginProvider>
