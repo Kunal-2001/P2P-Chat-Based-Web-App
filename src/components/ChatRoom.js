@@ -117,10 +117,12 @@ function ChatRoom(props) {
           >
             <span className="chatroom__username">{message.senderName}</span>
             {message.text}
-            <img
-              className="message-state"
-              src={CheckMessageInfo(message.messageInfo)}
-            />
+            {message.senderID === user.user.uid && (
+              <img
+                className="message-state"
+                src={CheckMessageInfo(message.messageInfo)}
+              />
+            )}
           </p>
         ))}
       </div>
